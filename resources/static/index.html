@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Food Delivery System</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { margin: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Food Delivery System</h1>
+
+  <input type="text" id="name" placeholder="Food Name">
+  <input type="text" id="category" placeholder="Category">
+  <input type="number" id="price" placeholder="Price">
+  <button onclick="addFoodItem()">Add Food</button>
+
+  <table id="foodTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function fetchFoodItems() {
+      const res = await fetch("/api/fooditems");
+      const data = await res.json();
+      const tableBody = document.querySelector("#foodTable tbody");
+      tableBody.innerHTML = "";
+
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.name}</td>
+          <td>${item.category}</td>
+          <td>${item.price}</td>
+          <td><button onclick="deleteFoodItem(${item.id})">Delete</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+	async function addFoodItem() {
+	  const name = document.getElementById("name").value;
+	  const category = document.getElementById("category").value;
+	  const price = parseFloat(document.getElementById("price").value);
+
+	  if (!name || !category || isNaN(price)) {
+	    alert("Please enter valid values!");
+	    return;
+	  }
+
+	  await fetch("/api/fooditems", {
+	    method: "POST",
+	    headers: { "Content-Type": "application/json" },
+	    body: JSON.stringify({ name, category, price })
+	  });
+
+	  // Clear form
+	  document.getElementById("name").value = "";
+	  document.getElementById("category").value = "";
+	  document.getElementById("price").value = "";
+
+	  // Refresh table
+	  fetchFoodItems();
+	}
+
+
+    async function deleteFoodItem(id) {
+      await fetch(`/api/fooditems/${id}`, {
+        method: "DELETE"
+      });
+      fetchFoodItems();
+    }
+
+    // Initial load
+    fetchFoodItems();
+  </script>
+</body>
+</html>
